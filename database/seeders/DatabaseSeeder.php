@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             CreateFirstUser::class,
-            CreatePelangaanDummy::class,
+            CreatePelangganDummy::class,
         ]);
     }
 }
