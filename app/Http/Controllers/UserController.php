@@ -5,14 +5,15 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
-    // 🔹 Tampilkan semua data user
+    // 🔹 Tampilkan semua data user (PAKAI PAGINATION)
     public function index()
     {
-         $dataUser = User::all();
-    return view('admin.user.index', compact('dataUser'));
+        $dataUser = User::latest()->paginate(10); // <— penting buat syarat pagination
+        return view('admin.user.index', compact('dataUser'));
     }
 
     // 🔹 Form tambah user baru
@@ -25,13 +26,21 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|min:6',
+            'name'            => 'required|string|max:255',
+            'email'           => 'required|email|unique:users,email',
+            'password'        => 'required|min:6',
+            'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        $data = $request->all();
+        // ambil hanya field yang diperlukan
+        $data = $request->only(['name', 'email']);
         $data['password'] = Hash::make($request->password);
+
+        // upload foto jika ada
+        if ($request->hasFile('profile_picture')) {
+            $data['profile_picture'] =
+                $request->file('profile_picture')->store('profile_pictures', 'public');
+        }
 
         User::create($data);
 
@@ -41,8 +50,8 @@ class UserController extends Controller
     // 🔹 Form edit data user
     public function edit($id)
     {
-         $user = User::findOrFail($id);
-    return view('admin.user.edit', compact('user'));
+        $user = User::findOrFail($id);
+        return view('admin.user.edit', compact('user'));
     }
 
     // 🔹 Update data user
@@ -51,18 +60,31 @@ class UserController extends Controller
         $user = User::findOrFail($id);
 
         $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email,' . $id,
-            'password' => 'nullable|min:6',
+            'name'            => 'required|string|max:255',
+            'email'           => 'required|email|unique:users,email,' . $id,
+            'password'        => 'nullable|min:6',
+            'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        $data = $request->all();
+        // ambil field dasar (tanpa password & foto dulu)
+        $data = $request->only(['name', 'email']);
 
         // hanya update password jika diisi
         if (!empty($request->password)) {
             $data['password'] = Hash::make($request->password);
-        } else {
-            unset($data['password']);
+        }
+
+        // kalau upload foto baru
+        if ($request->hasFile('profile_picture')) {
+
+            // hapus foto lama (kalau ada)
+            if ($user->profile_picture) {
+                Storage::disk('public')->delete($user->profile_picture);
+            }
+
+            // simpan foto baru
+            $data['profile_picture'] =
+                $request->file('profile_picture')->store('profile_pictures', 'public');
         }
 
         $user->update($data);
@@ -74,9 +96,13 @@ class UserController extends Controller
     public function destroy($id)
     {
         $user = User::findOrFail($id);
+
+        if ($user->profile_picture) {
+            Storage::disk('public')->delete($user->profile_picture);
+        }
+
         $user->delete();
 
         return redirect()->route('user.index')->with('success', 'User berhasil dihapus!');
     }
 }
-
