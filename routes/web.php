@@ -7,6 +7,8 @@ use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\PelangganController;
+use App\Http\Controllers\MultiUploadController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -47,3 +49,9 @@ Route::get('dashboard', [DashboardController::class, 'index'])
 Route::resource('pelanggan', PelangganController::class);
 
 Route::resource('user', UserController::class);
+
+Route::post('/pelanggan/upload-files', [PelangganController::class, 'uploadFiles'])
+    ->name('pelanggan.upload-files');
+
+Route::delete('/pelanggan/file/{fileId}', [PelangganController::class, 'deleteFile'])
+    ->name('pelanggan.delete-file');
