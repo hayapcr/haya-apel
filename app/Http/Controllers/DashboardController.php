@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -11,6 +12,9 @@ class DashboardController extends Controller
      */
     public function index()
     {
+        if (! Auth::check()) {
+		       return redirect()->route('auth')->withErrors('Silahkan login dulu');
+		    }
         return view('admin.dashboard');
     }
 

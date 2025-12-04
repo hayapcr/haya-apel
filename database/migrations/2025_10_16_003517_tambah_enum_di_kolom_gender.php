@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('pelanggan', function (Blueprint $table) {
             // Mengubah kolom 'gender' menjadi enum baru
-            $table->enum('gender', ['Pria', 'Wanita', 'Other', 'Non-Binary'])->nullable()->change();
+            $table->string('gender')->nullable()->change();
         });
     }
 

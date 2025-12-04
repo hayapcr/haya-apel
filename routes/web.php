@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\QuestionController;
@@ -55,3 +56,12 @@ Route::post('/pelanggan/upload-files', [PelangganController::class, 'uploadFiles
 
 Route::delete('/pelanggan/file/{fileId}', [PelangganController::class, 'deleteFile'])
     ->name('pelanggan.delete-file');
+
+Route::get('auth', [AuthController::class, 'index'])
+		->name('auth');
+
+Route::post('auth/login', [AuthController::class, 'login'])
+	->name('auth.login');
+
+Route::get('auth/logout', [AuthController::class, 'logout'])
+    ->name('auth.logout');
